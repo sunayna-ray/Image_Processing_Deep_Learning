@@ -1,6 +1,7 @@
 import os
 import pickle
 import numpy as np
+from ImageUtils import parse_record
 
 """This script implements the functions for reading data.
 """
@@ -36,10 +37,14 @@ def load_data(data_dir):
         else:    
             x_train=np.vstack((x_train, batch_data[b'data'].astype(np.float32)))
             y_train=np.hstack((y_train, np.array(batch_data[b'labels'])))
-            
+
     test_data=pickle.load(open(data_dir+"/test_batch", 'rb'), encoding='bytes')
     (x_test, y_test) = (test_data[b'data'].astype(np.float32), np.array(test_data[b'labels']))
 
+    
+    x_train=np.apply_along_axis(lambda x: parse_record(x, True), 1, x_train)
+    x_test=np.apply_along_axis(lambda x: parse_record(x, False), 1, x_test)
+    
     ### END CODE HERE
 
     return x_train, y_train, x_test, y_test
