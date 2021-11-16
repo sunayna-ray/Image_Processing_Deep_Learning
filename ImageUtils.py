@@ -45,7 +45,20 @@ def preprocess_image(image, training):
         image: An array of shape [32, 32, 3]. The processed image.
     """
     ### YOUR CODE HERE
+    if training:
+        # Resize the image to add four extra pixels on each side.
+        image=np.pad(image, ((4,4), (4,4), (0,0)), 'constant')
+        # Randomly crop a [32, 32] section of the image.
+        (crop_size_x, crop_size_y)=(32,32)
+        tl_x=np.random.randint(1, image.shape[0]-crop_size_x+2)
+        tl_y=np.random.randint(1, image.shape[1]-crop_size_y+2)
+        image=image[tl_x-1:tl_x+crop_size_x-1, tl_y-1:tl_y+crop_size_y-1]
 
+        # Randomly flip the image horizontally.
+        if np.random.randint(0,1) == 1: image=np.flip(image, 1)
+        
+    # Subtract off the mean and divide by the standard deviation of the pixels.
+    image=(image-np.mean(image, axis=(0,1)))/np.std(image, axis=(0,1))
     ### END CODE HERE
 
     return image
