@@ -36,7 +36,7 @@ def load_data(data_dir=''):
     return train_dataset_loaded, valid_dataset_loaded, cifar_test_dataset_loaded
 
 class Private_Image_Dataset(torch.utils.data.Dataset):
-    def __init__(self, data_dir, transform=None):
+    def __init__(self, data_dir, transform=preprocess_image()[1]):
         self.data = np.load(data_dir+"\private_test_images_v3.npy")
         self.transform = transform
 
@@ -66,7 +66,7 @@ def load_private_testing_images(data_dir):
     ### YOUR CODE HERE
     private_test_dataset=Private_Image_Dataset(data_dir, transform=preprocess_image()[1])
     private_test_dataset_loaded = torch.utils.data.DataLoader(private_test_dataset, batch_size, shuffle = False, pin_memory = True, num_workers=2)
-
+    print(len(private_test_dataset_loaded))
     ### END CODE HERE
 
     return private_test_dataset_loaded
