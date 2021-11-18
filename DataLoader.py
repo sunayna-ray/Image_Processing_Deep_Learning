@@ -1,56 +1,58 @@
 import os
 import pickle
 import numpy as np
-from ImageUtils import parse_record
+from ImageUtils import preprocess_image
+import torchvision
+import torch
+from PIL import Image
 
 """This script implements the functions for reading data.
 """
+batch_size=64
 
-def load_data(data_dir):
+def load_data(data_dir=''):
     """Load the CIFAR-10 dataset.
 
     Args:
         data_dir: A string. The directory where data batches
-            are stored.
+            are stored/will be downloaded.
 
     Returns:
-        x_train: An numpy array of shape [50000, 3072].
-            (dtype=np.float32)
-        y_train: An numpy array of shape [50000,].
-            (dtype=np.int32)
-        x_test: An numpy array of shape [10000, 3072].
-            (dtype=np.float32)
-        y_test: An numpy array of shape [10000,].
-            (dtype=np.int32)
+        train_dataset_loaded: Training Dataset
+        valid_dataset_loaded: Validation Dataset
+        cifar_test_dataset_loaded: CIFAR-10 Test Dataset
     """
-
-    ### YOUR CODE HERE
-
-    x_train = np.array([])
-    y_train = np.array([])
-    for i in range(1,6):
-        batch_data = pickle.load(open(data_dir+"/cifar-10-batches-py/data_batch_"+str(i), 'rb'), encoding='bytes')
-        if (not np.any(x_train)):    
-            # If first batch of loading
-            x_train=batch_data[b'data'].astype(np.float32)
-            y_train=batch_data[b'labels']
-        else:    
-            x_train=np.vstack((x_train, batch_data[b'data'].astype(np.float32)))
-            y_train=np.hstack((y_train, np.array(batch_data[b'labels'])))
-
-    test_data=pickle.load(open(data_dir+"/test_batch", 'rb'), encoding='bytes')
-    (x_test, y_test) = (test_data[b'data'].astype(np.float32), np.array(test_data[b'labels']))
-
     
-    x_train=np.apply_along_axis(lambda x: parse_record(x, True), 1, x_train)
-    x_test=np.apply_along_axis(lambda x: parse_record(x, False), 1, x_test)
+    input_train_dataset = torchvision.datasets.CIFAR10(root = data_dir, download = True, transform = preprocess_image()[0])
+    train_dataset, valid_dataset = train_valid_split(input_train_dataset)
+    cifar_test_dataset = (torchvision.datasets.CIFAR10(root = data_dir, download = True, transform = preprocess_image()[1], train = False))
     
+    train_dataset_loaded = torch.utils.data.DataLoader(train_dataset, batch_size, shuffle = True, pin_memory = True)
+    valid_dataset_loaded = torch.utils.data.DataLoader(valid_dataset, batch_size, shuffle = True, pin_memory = True)
+    cifar_test_dataset_loaded = torch.utils.data.DataLoader(cifar_test_dataset, batch_size, shuffle = True, pin_memory = True)
+
     ### END CODE HERE
 
-    return x_train, y_train, x_test, y_test
+    return train_dataset_loaded, valid_dataset_loaded, cifar_test_dataset_loaded
 
+class Private_Image_Dataset(torch.utils.data.Dataset):
+    def __init__(self, data_dir, transform=None):
+        self.data = np.load(data_dir+"\private_test_images_v3.npy")
+        self.transform = transform
 
-def load_testing_images(data_dir):
+    def __getitem__(self, index):
+        x = self.data[index]
+
+        if self.transform:
+            x = Image.fromarray(self.data[index])
+            x = self.transform(x)
+
+        return x
+
+    def __len__(self):
+        return len(self.data)
+
+def load_private_testing_images(data_dir):
     """Load the images in private testing dataset.
 
     Args:
@@ -58,43 +60,37 @@ def load_testing_images(data_dir):
         are stored.
 
     Returns:
-        x_test: An numpy array of shape [N, 32, 32, 3].
-            (dtype=np.float32)
+        private_test_dataset_loaded: Private Test dataset
     """
 
     ### YOUR CODE HERE
-    data=np.load(data_dir+"private_test_images_v3.npy")
-    N=data.shape[0]
-    x_test=data.reshape(N, 32, 32, 3)
+    private_test_dataset=Private_Image_Dataset(data_dir, transform=preprocess_image()[1])
+    private_test_dataset_loaded = torch.utils.data.DataLoader(private_test_dataset, batch_size, shuffle = False, pin_memory = True, num_workers=2)
 
     ### END CODE HERE
 
-    return x_test
+    return private_test_dataset_loaded
 
 
-def train_valid_split(x_train, y_train, train_ratio=0.8):
+def train_valid_split(input_train_dataset, train_ratio=0.8):
     """Split the original training data into a new training dataset
     and a validation dataset.
 
     Args:
-        x_train: An array of shape [50000, 3072].
-        y_train: An array of shape [50000,].
+        input_train_dataset: Input training dataset
         train_ratio: A float number between 0 and 1.
 
     Returns:
-        x_train_new: An array of shape [split_index, 3072].
-        y_train_new: An array of shape [split_index,].
-        x_valid: An array of shape [50000-split_index, 3072].
-        y_valid: An array of shape [50000-split_index,].
+        train_dataset: Training dataset of length train_ratio*x_train.shape.
+        valid_dataset: Validation dataset of length [1-train_ratio]*x_train.shape.
     """
     
     ### YOUR CODE HERE
-    split_index = train_ratio*x_train.shape
-    x_train_new = x_train[:split_index]
-    y_train_new = y_train[:split_index]
-    x_valid = x_train[split_index:]
-    y_valid = y_train[split_index:]
+    split_index=int(train_ratio* len(input_train_dataset))
+    train_dataset, valid_dataset = torch.utils.data.random_split(
+        dataset = input_train_dataset, 
+        lengths = [split_index, len(input_train_dataset)-split_index],
+        generator = torch.Generator().manual_seed(42))
     ### END CODE HERE
 
-    return x_train_new, y_train_new, x_valid, y_valid
-
+    return train_dataset, valid_dataset

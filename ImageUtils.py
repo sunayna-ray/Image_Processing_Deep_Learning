@@ -1,12 +1,11 @@
 import numpy as np
-import torch.nn as nn
-import torchvision
 import torchvision.transforms as transforms
 
 """This script implements the functions for data augmentation
 and preprocessing.
 """
 
+#UNUSED METHOD
 def parse_record(record, training):
     """Parse a record to an image and perform data preprocessing.
 
@@ -37,7 +36,7 @@ def parse_record(record, training):
     return image
 
 
-def preprocess_image(image, training):
+def preprocess_image():
     """Preprocess a single image of shape [height, width, depth].
 
     Args:
@@ -45,24 +44,24 @@ def preprocess_image(image, training):
         training: A boolean. Determine whether it is in training mode.
 
     Returns:
-        image: An array of shape [32, 32, 3]. The processed image.
+        preprocess_train, preprocess_test: Transformations for train and test preprocessing.
     """
     ### YOUR CODE HERE
     #Reference for stats values: https://github.com/Armour/pytorch-nn-practice/blob/master/utils/meanstd.py
     cifar_mean_stddev = ((0.49139968,  0.48215841,  0.44653091), (0.24703223,  0.24348513,  0.26158784))
     #Tutorial for using pytorch transforms:https://pytorch.org/vision/stable/auto_examples/plot_scripted_tensor_transforms.html
-    preprocess_train = nn.Sequential([
+    preprocess_train = transforms.Compose([
         transforms.RandomCrop(32,padding = 4, padding_mode = 'reflect'),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(*cifar_mean_stddev, inplace=True) 
     ])
     
-    preprocess_test = nn.Sequential([
+    preprocess_test = transforms.Compose([
          transforms.ToTensor(),
         transforms.Normalize(*cifar_mean_stddev, inplace=True)
     ])
 
     ### END CODE HERE
 
-    return image
+    return (preprocess_train, preprocess_test)

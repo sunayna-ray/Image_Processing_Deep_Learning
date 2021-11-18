@@ -12,15 +12,16 @@ class MyNetwork(nn.Module):
     def __init__(self, configs):
         self.configs = configs
 
+
+    '''
+    Args:
+        inputs: A Tensor representing a batch of input images.
+        training: A boolean. Used by operations that work differently
+            in training and testing phases such as batch normalization.
+    Return:
+        The output Tensor of the network.
+    '''
     def __call__(self, inputs, training):
-    	'''
-    	Args:
-            inputs: A Tensor representing a batch of input images.
-            training: A boolean. Used by operations that work differently
-                in training and testing phases such as batch normalization.
-        Return:
-            The output Tensor of the network.
-    	'''
         return self.build_network(inputs, training)
 
     def build_network(self, inputs, training):
