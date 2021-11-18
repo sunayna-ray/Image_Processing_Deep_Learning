@@ -1,11 +1,13 @@
 ### YOUR CODE HERE
-# import tensorflow as tf
-# import torch
+import torch
+from torch import version
+from torch.functional import Tensor
+import torch.nn as nn
 
 """This script defines the network.
 """
 
-class MyNetwork(object):
+class MyNetwork(nn.Module):
 
     def __init__(self, configs):
         self.configs = configs

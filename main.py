@@ -4,7 +4,7 @@
 import os, argparse
 import numpy as np
 from Model import MyModel
-from DataLoader import load_data, train_valid_split
+from DataLoader import load_data, train_valid_split, load_testing_images
 from Configure import model_configs, training_configs
 
 from datetime import datetime
