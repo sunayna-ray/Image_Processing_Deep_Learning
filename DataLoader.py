@@ -1,10 +1,7 @@
-import os
-import pickle
-import numpy as np
+from Utils import Private_Image_Dataset, display_batch
 from ImageUtils import preprocess_image
 import torchvision
 import torch
-from PIL import Image
 
 """This script implements the functions for reading data.
 """
@@ -24,33 +21,16 @@ def load_data(data_dir=''):
     """
     
     input_train_dataset = torchvision.datasets.CIFAR10(root = data_dir, download = True, transform = preprocess_image()[0])
-    train_dataset, valid_dataset = train_valid_split(input_train_dataset)
-    cifar_test_dataset = (torchvision.datasets.CIFAR10(root = data_dir, download = True, transform = preprocess_image()[1], train = False))
+    cifar_test_dataset = torchvision.datasets.CIFAR10(root = data_dir, download = True, transform = preprocess_image()[1], train = False)
     
+    train_dataset, valid_dataset = train_valid_split(input_train_dataset)
     train_dataset_loaded = torch.utils.data.DataLoader(train_dataset, batch_size, shuffle = True, pin_memory = True)
     valid_dataset_loaded = torch.utils.data.DataLoader(valid_dataset, batch_size, shuffle = True, pin_memory = True)
     cifar_test_dataset_loaded = torch.utils.data.DataLoader(cifar_test_dataset, batch_size, shuffle = True, pin_memory = True)
-
+    display_batch(cifar_test_dataset_loaded)
     ### END CODE HERE
 
     return train_dataset_loaded, valid_dataset_loaded, cifar_test_dataset_loaded
-
-class Private_Image_Dataset(torch.utils.data.Dataset):
-    def __init__(self, data_dir, transform=preprocess_image()[1]):
-        self.data = np.load(data_dir+"\private_test_images_v3.npy")
-        self.transform = transform
-
-    def __getitem__(self, index):
-        x = self.data[index]
-
-        if self.transform:
-            x = Image.fromarray(self.data[index])
-            x = self.transform(x)
-
-        return x
-
-    def __len__(self):
-        return len(self.data)
 
 def load_private_testing_images(data_dir):
     """Load the images in private testing dataset.
@@ -66,11 +46,10 @@ def load_private_testing_images(data_dir):
     ### YOUR CODE HERE
     private_test_dataset=Private_Image_Dataset(data_dir, transform=preprocess_image()[1])
     private_test_dataset_loaded = torch.utils.data.DataLoader(private_test_dataset, batch_size, shuffle = False, pin_memory = True, num_workers=2)
-    print(len(private_test_dataset_loaded))
+    display_batch(private_test_dataset_loaded, test=True)
     ### END CODE HERE
 
     return private_test_dataset_loaded
-
 
 def train_valid_split(input_train_dataset, train_ratio=0.8):
     """Split the original training data into a new training dataset
