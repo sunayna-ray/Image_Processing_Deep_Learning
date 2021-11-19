@@ -41,3 +41,30 @@ def display_batch(dataset_loaded, test=False):
             fig.savefig('batch.png', dpi=200) 
             print(labels)
             break
+
+#Reference: https://pytorch.org/tutorials/beginner/nn_tutorial.html#wrapping-dataloader
+
+def get_torch_device():
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    return device
+
+def move_to_device(object, device):
+    if (isinstance(object, (list, tuple))):
+        # tensor = tf.convert_to_tensor(array)
+        return [move_to_device(obj, device) for obj in object]
+    elif isinstance(object, dict):
+        return [(k, move_to_device(v, device)) for k,v in object.items]
+    else:
+        return object.to(device=device, non_blocking = True)
+
+class WrappedDataLoader:
+    def __init__(self, dataset_loaded):
+        self.dataset_loaded = dataset_loaded
+
+    def __len__(self):
+        return len(self.dataset_loaded)
+
+    def __iter__(self):
+        batches = iter(self.dataset_loaded)
+        for b in batches:
+            yield (move_to_device(b, device=get_torch_device()))

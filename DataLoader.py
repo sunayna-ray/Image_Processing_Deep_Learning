@@ -1,7 +1,8 @@
-from Utils import Private_Image_Dataset, display_batch
+from Utils import Private_Image_Dataset, WrappedDataLoader, display_batch
 from ImageUtils import preprocess_image
 import torchvision
 import torch
+from torch.utils.data import DataLoader
 
 """This script implements the functions for reading data.
 """
@@ -24,9 +25,13 @@ def load_data(data_dir=''):
     cifar_test_dataset = torchvision.datasets.CIFAR10(root = data_dir, download = True, transform = preprocess_image()[1], train = False)
     
     train_dataset, valid_dataset = train_valid_split(input_train_dataset)
-    train_dataset_loaded = torch.utils.data.DataLoader(train_dataset, batch_size, shuffle = True, pin_memory = True)
-    valid_dataset_loaded = torch.utils.data.DataLoader(valid_dataset, batch_size, shuffle = True, pin_memory = True)
-    cifar_test_dataset_loaded = torch.utils.data.DataLoader(cifar_test_dataset, batch_size, shuffle = True, pin_memory = True)
+    train_dataset_loaded = DataLoader(train_dataset, batch_size, shuffle = True, pin_memory = True)
+    valid_dataset_loaded = DataLoader(valid_dataset, batch_size, shuffle = True, pin_memory = True)
+    cifar_test_dataset_loaded = DataLoader(cifar_test_dataset, batch_size, shuffle = True, pin_memory = True)
+    
+    train_dataset_loaded = WrappedDataLoader(train_dataset_loaded)
+    valid_dataset_loaded = WrappedDataLoader(valid_dataset_loaded)
+    cifar_test_dataset_loaded = WrappedDataLoader(cifar_test_dataset_loaded)
     display_batch(cifar_test_dataset_loaded)
     ### END CODE HERE
 
@@ -45,7 +50,8 @@ def load_private_testing_images(data_dir):
 
     ### YOUR CODE HERE
     private_test_dataset=Private_Image_Dataset(data_dir, transform=preprocess_image()[1])
-    private_test_dataset_loaded = torch.utils.data.DataLoader(private_test_dataset, batch_size, shuffle = False, pin_memory = True, num_workers=2)
+    private_test_dataset_loaded = DataLoader(private_test_dataset, batch_size, shuffle = False, pin_memory = True, num_workers=2)
+    private_test_dataset_loaded = WrappedDataLoader(private_test_dataset_loaded)
     display_batch(private_test_dataset_loaded, test=True)
     ### END CODE HERE
 
