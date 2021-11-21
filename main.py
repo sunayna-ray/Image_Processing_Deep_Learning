@@ -6,6 +6,7 @@ import numpy as np
 from Model import MyModel
 from DataLoader import load_data, load_private_testing_images
 from Configure import model_configs, training_configs
+from Utils import move_to_device, get_torch_device
 
 from datetime import datetime
 dt=datetime.now().strftime('%m_%d_%Hh_%Mm')
@@ -17,8 +18,9 @@ dt=datetime.now().strftime('%m_%d_%Hh_%Mm')
 
 if __name__ == '__main__':
 	model = MyModel(model_configs)
+	model = move_to_device(model, get_torch_device())
 
-	mode = 'predict'
+	mode = 'test'
 	data_dir = "G:\Tamu\Semester 1\Deep Learning\Project\CSCE636-project-2021Fall\starter_code\data"
 	result_dir = "G:\Tamu\Semester 1\Deep Learning\Project\CSCE636-project-2021Fall\output\result_dt"
 	# if (args.mode!=''): mode= args.mode
@@ -26,15 +28,14 @@ if __name__ == '__main__':
 	# if (args.result_dir!=''): result_dir= args.result_dir
 
 	if mode == 'train':
-		train_dataset_loaded, valid_dataset_loaded, _ = load_data(data_dir)
-
-		# model.train(x_train, y_train, training_configs, x_valid, y_valid)
-		# model.evaluate(x_test, y_test)
+		train_dataset_loaded, valid_dataset_loaded, cifar_test_dataset_loaded = load_data(data_dir)
+		model.train_validate(epochs=1, train_dataset_loaded=train_dataset_loaded, valid_dataset_loaded=valid_dataset_loaded)
+		model.evaluate(cifar_test_dataset_loaded)
 
 	elif mode == 'test':
 		# Testing on public testing dataset
 		_, _, cifar_test_dataset_loaded = load_data(data_dir)
-		# model.evaluate(x_test, y_test)
+		model.evaluate(cifar_test_dataset_loaded)
 
 	elif mode == 'predict':
 		# Predicting and storing results on private testing dataset 
