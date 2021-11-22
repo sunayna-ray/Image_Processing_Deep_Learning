@@ -125,12 +125,12 @@ class MyModel(nn.Module):
                 else: logits=np.vstack((logits, self.network(images).numpy()))
 
         probab_logits=nn.functional.softmax(torch.FloatTensor(logits), dim=1)
-        probabilities, predicted_class = torch.max(probab_logits, dim = 1)
-        return_probab=probabilities.numpy()
-        np.save(self.dir_path+"private_probabilities",  return_probab)
+        _, predicted_class = torch.max(probab_logits, dim = 1)
+        
+        np.save(self.dir_path+"private_probabilities",  probab_logits)
         np.save(self.dir_path+"private_predicted_class",  predicted_class.numpy())
 
-        return return_probab
+        return probab_logits
 
 
 ### END CODE HERE
