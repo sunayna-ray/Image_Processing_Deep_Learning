@@ -72,7 +72,7 @@ class MyModel(nn.Module):
 
         self.network.save(self.dir_path_fin, epochs)
         np.save(self.dir_path_fin+"training_results_fin", np.array(results), allow_pickle=True)
-        plot_results(results, self.dir_path)
+        plot_results(results, self.dir_path+"training_results_fin/")
 
         with open(self.dir_path_fin+'model_summary.log', 'w') as f:
             report, _ = summary_string(self.network, input_size=(3, 32, 32), device=get_torch_device())

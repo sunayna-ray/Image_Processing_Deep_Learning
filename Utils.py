@@ -25,6 +25,7 @@ cifar_mean_stddev = ((0.49139968,  0.48215841,  0.44653091), (0.24703223,  0.243
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 def display_batch(dataset_loaded, test=False, private=True):
+    if not os.path.exists('images/'): os.makedirs('images/')
     (mean, stddev)=cifar_mean_stddev
     mean = move_to_device(torch.tensor(mean).reshape(1,3,1,1),get_torch_device()) 
     stddev = move_to_device(torch.tensor(stddev).reshape(1,3,1,1),get_torch_device()) 
@@ -33,14 +34,14 @@ def display_batch(dataset_loaded, test=False, private=True):
             fig, ax = plt.subplots(figsize = (10,10))
             images = images * stddev + mean
             ax.imshow(make_grid(images.cpu(),nrow=10).permute(1,2,0))
-            fig.savefig('test_batch_private.png', dpi=200) 
+            fig.savefig('images/test_batch_private.png', dpi=200) 
             break
     elif test:
         for images, labels in dataset_loaded:
             fig, ax = plt.subplots(figsize = (10,10))
             images = images * stddev + mean
             ax.imshow(make_grid(images.cpu(),10).permute(1,2,0))
-            fig.savefig('test_batch.png', dpi=200) 
+            fig.savefig('images/test_batch.png', dpi=200) 
             print(' '.join('%5s' % classes[labels[j]] for j in range(64)))
             break
     else: 
@@ -48,7 +49,7 @@ def display_batch(dataset_loaded, test=False, private=True):
             fig, ax = plt.subplots(figsize = (10,10))
             images = images * stddev + mean
             ax.imshow(make_grid(images.cpu(),10).permute(1,2,0))
-            fig.savefig('batch.png', dpi=200)
+            fig.savefig('images/batch.png', dpi=200)
             print(' '.join('%5s' % classes[labels[j]] for j in range(64)))
             break
 
