@@ -8,6 +8,8 @@ from Network import MyNetwork
 from torch import nn
 from tqdm import tqdm
 from Utils import get_most_recent_ckpt_path, get_ckpt_number, plot_results
+from SummaryUtils import summary_string  #use torchsummary package from https://github.com/sksq96/pytorch-summary
+from Utils import get_torch_device
 
 """This script defines the training, validation and testing process.
 """
@@ -51,9 +53,6 @@ class MyModel(nn.Module):
                 optimizer.zero_grad()
                 lrs.append(optimizer.param_groups[0]['lr'])
                 scheduler.step()
-                # self.batch_iter=self.batch_iter+1
-                # print("Completed batch_iter: ", self.batch_iter)
-                break
             epoch_train_loss = torch.stack(train_losses).mean().item()
                         
             epoch_avg_loss, epoch_avg_acc = self.evaluate(valid_dataset_loaded, test=False)
@@ -68,6 +67,12 @@ class MyModel(nn.Module):
         self.network.save(self.dir_path_fin, self.load_checkpoint_num+epochs)
         np.save(self.dir_path_fin+"training_results_fin", np.array(results), allow_pickle=True)
         plot_results(results, self.dir_path)
+
+        with open(self.dir_path_fin+'model_summary.log', 'w') as f:
+            report, _ = summary_string(self.network, input_size=(3, 32, 32), device=get_torch_device())
+            f.write(report)
+            f.close
+        
         return results
 
     
@@ -90,9 +95,10 @@ class MyModel(nn.Module):
             batch_accs.append(self.accuracy(logits, labels))
         avg_loss = torch.stack(batch_losses).mean().item()
         avg_acc = torch.stack(batch_accs).mean().item()
+
         if (test):
             print("avg_loss, ", avg_loss)
-            print("\navg_acc, ", avg_acc)
+            print("avg_acc, ", avg_acc)
         return avg_loss, avg_acc
 
     def predict_prob(self, test_dataset_loaded, private=False):

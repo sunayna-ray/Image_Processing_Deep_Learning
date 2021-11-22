@@ -1,10 +1,10 @@
 ### YOUR CODE HERE
-import torch
 import math
+import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from Network_block_utils import bottleneck_block, initialize_params,bn_rl_conv2d_block
-from collections import OrderedDict
+
+from Network_block_utils import (bn_rl_conv2d_block, bottleneck_block,
+                                 initialize_params)
 
 """This script defines the network.
 """
@@ -48,13 +48,7 @@ class MyNetwork(nn.Module):
                         nn.ReLU(),
                         nn.AvgPool2d(8),
                         nn.Flatten(),
-                        nn.Linear(nchannels,num_classes),
-                        nn.LogSoftmax()))
-        
-        self.bn1 = nn.BatchNorm2d(nchannels)
-        self.fc = initialize_params(nn.Linear(nchannels,num_classes))
-
-
+                        nn.Linear(nchannels,num_classes)))
     '''
     Args:
         inputs: A Tensor representing a batch of input images.
@@ -70,18 +64,8 @@ class MyNetwork(nn.Module):
         out = self.dense2(out)
         out = self.trans2(out)
         out = self.dense3(out)
-        out1 = self.classifier(out)
-        out2 = torch.squeeze(F.avg_pool2d(F.relu(self.bn1(out)), 8))
-        # out2 = F.log_softmax(self.fc(out2))
-        print(out2.size())
-        # print(out2)
-        return out1
-        
-    # def __call__(self, inputs, training):
-    #     return self.build_network(inputs, training)
-
-    # def build_network(self, inputs, training):
-    #     return inputs
+        out = self.classifier(out)
+        return out
 
     def save(self, dir_path, epochs):
         torch.save(self.state_dict(), dir_path+'model-%d.ckpt'%(epochs))

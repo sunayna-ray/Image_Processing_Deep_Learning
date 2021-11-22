@@ -4,3 +4,5 @@ __pycache__/
 *.png
 *.npy
 outputs_*
+*.log
+SummaryUtils.py
