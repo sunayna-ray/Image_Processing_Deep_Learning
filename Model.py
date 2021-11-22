@@ -14,7 +14,7 @@ from Utils import get_most_recent_ckpt_path, get_ckpt_number, plot_results
 
 class MyModel(nn.Module):
 
-    def __init__(self, configs, max_lr=1e-2, loss_func=nn.functional.cross_entropy, optim=torch.optim.Adam, load_checkpoint_num=0, model_name="model"):
+    def __init__(self, configs, max_lr=1e-2, loss_func=nn.functional.cross_entropy,load_checkpoint_num=0, model_name="model"):
         super(MyModel, self).__init__()
         # self.configs = configs
         self.network = MyNetwork(in_channels= 3, num_classes= 10)
@@ -22,7 +22,7 @@ class MyModel(nn.Module):
         self.load_checkpoint_num=load_checkpoint_num
         self.max_lr=max_lr
         self.loss_func=loss_func
-        self.optim=optim
+        self.optim=torch.optim.SGD(self.network.parameters(), lr=self.learning_rate,momentum=0.997)
         self.dir_path="outputs_"+model_name+"/"
         self.dir_path_fin="outputs_"+model_name+"_fin/"
         if not os.path.exists(self.dir_path): os.makedirs(self.dir_path)
