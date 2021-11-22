@@ -37,7 +37,7 @@ class MyModel(nn.Module):
         if ckpt_path is not None:
             self.network.load_ckpt(ckpt_path)
             self.load_checkpoint_num=get_ckpt_number(ckpt_path)
-            
+
         for epoch in range(epochs):
             self.network.train()
             train_losses = []
@@ -90,6 +90,9 @@ class MyModel(nn.Module):
             batch_accs.append(self.accuracy(logits, labels))
         avg_loss = torch.stack(batch_losses).mean().item()
         avg_acc = torch.stack(batch_accs).mean().item()
+        if (test):
+            print("avg_loss, ", avg_loss)
+            print("\navg_acc, ", avg_acc)
         return avg_loss, avg_acc
 
     def predict_prob(self, test_dataset_loaded, private=False):

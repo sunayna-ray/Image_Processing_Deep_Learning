@@ -19,10 +19,10 @@ dt=datetime.now().strftime('%m_%d_%Hh_%Mm')
 
 #Tutorial Refernce: https://github.com/pytorch/tutorials/blob/master/beginner_source/blitz/cifar10_tutorial.py
 if __name__ == '__main__':
-	model = MyModel(model_configs)
+	model = MyModel(model_configs, model_name="Densenet_1")
 	model = move_to_device(model, get_torch_device())
 
-	mode = 'predict'
+	mode = 'all'
 	data_dir = "G:\Tamu\Semester 1\Deep Learning\Project\CSCE636-project-2021Fall\starter_code\data\\"
 	result_dir = "G:\Tamu\Semester 1\Deep Learning\Project\CSCE636-project-2021Fall\output\result_dt"
 	# if (args.mode!=''): mode= args.mode
@@ -44,6 +44,13 @@ if __name__ == '__main__':
 		x_test = load_private_testing_images(data_dir)
 		predictions = model.predict_prob(x_test, private=True)
 		# np.save(result_dir, predictions)
+	
+	elif mode == 'all':
+		train_dataset_loaded, valid_dataset_loaded, cifar_test_dataset_loaded = load_data(data_dir)
+		model.train_validate(epochs=1, train_dataset_loaded=train_dataset_loaded, valid_dataset_loaded=valid_dataset_loaded)
+		model.evaluate(cifar_test_dataset_loaded)
+		x_test = load_private_testing_images(data_dir)
+		predictions = model.predict_prob(x_test, private=True)
 		
 
 ### END CODE HERE
