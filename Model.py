@@ -7,7 +7,7 @@ import torch
 from Network import MyNetwork
 from torch import nn
 from tqdm import tqdm
-from Utils import get_most_recent_ckpt_path, plot_results
+from Utils import get_most_recent_ckpt_path, move_to_device, plot_results
 
 """This script defines the training, validation and testing process.
 """
@@ -80,8 +80,29 @@ class MyModel(nn.Module):
         avg_acc = torch.stack(batch_accs).mean().item()
         return avg_loss, avg_acc
 
-    def predict_prob(self, test_dataset_loaded):
-        results = self.evaluate(test_dataset_loaded)
+    def predict_prob(self, test_dataset_loaded, private=False):
+        self.network.eval()
+        logits=None
+        if private:
+            for images in test_dataset_loaded:
+                with torch.no_grad():
+                    if logits is None:
+                        logits = self.network(images).numpy()
+                    else: logits=np.vstack((logits, self.network(images).numpy()))
+        else:
+            for images,_ in test_dataset_loaded:
+                if logits is None:
+                    logits = self.network(images).numpy()
+                else: logits=np.vstack((logits, self.network(images).numpy()))
+
+        probab_logits=nn.functional.softmax(torch.FloatTensor(logits), dim=1)
+        probabilities, predicted_class = torch.max(probab_logits, dim = 1)
+        return_probab=probabilities.cpu().numpy()
+        np.save(self.dir_path+"private_probabilities",  return_probab)
+        np.save(self.dir_path+"private_predicted_class",  predicted_class.cpu().numpy())
+
+        return return_probab
+        
 
 
 ### END CODE HERE

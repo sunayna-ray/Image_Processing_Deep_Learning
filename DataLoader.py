@@ -51,13 +51,12 @@ def load_private_testing_images(data_dir):
 
     ### YOUR CODE HERE
     private_test_dataset=Private_Image_Dataset(data_dir, transform=preprocess_image()[1])
-    private_test_dataset_loaded = DataLoader(private_test_dataset, batch_size=2000, shuffle = False, pin_memory = True, num_workers=2)
+    private_test_dataset_loaded = DataLoader(private_test_dataset, batch_size, shuffle = False, pin_memory = True, num_workers=2)
     private_test_dataset_loaded = WrappedDataLoader(private_test_dataset_loaded)
-    display_batch(private_test_dataset_loaded, test=True)
-    for images in private_test_dataset_loaded:
-        test_batch = move_to_device(images, get_torch_device())
-    private_test_dataset_loaded = move_to_device(test_batch, get_torch_device())
     display_batch(private_test_dataset_loaded, test=True, private=True)
+    # for images in private_test_dataset_loaded:
+    #     test_batch = move_to_device(images, get_torch_device())
+    # private_test_dataset_loaded = move_to_device(test_batch, get_torch_device())
     ### END CODE HERE
 
     return private_test_dataset_loaded

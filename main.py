@@ -21,7 +21,7 @@ if __name__ == '__main__':
 	model = MyModel(model_configs)
 	model = move_to_device(model, get_torch_device())
 
-	mode = 'train'
+	mode = 'predict'
 	data_dir = "G:\Tamu\Semester 1\Deep Learning\Project\CSCE636-project-2021Fall\starter_code\data\\"
 	result_dir = "G:\Tamu\Semester 1\Deep Learning\Project\CSCE636-project-2021Fall\output\result_dt"
 	# if (args.mode!=''): mode= args.mode
@@ -41,7 +41,7 @@ if __name__ == '__main__':
 	elif mode == 'predict':
 		# Predicting and storing results on private testing dataset 
 		x_test = load_private_testing_images(data_dir)
-		# predictions = model.predict_prob(x_test)
+		predictions = model.predict_prob(x_test, private=True)
 		# np.save(result_dir, predictions)
 		
 
