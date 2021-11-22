@@ -21,7 +21,7 @@ dt=datetime.now().strftime('%m_%d_%Hh_%Mm')
 if __name__ == '__main__':
 	model = MyModel(model_configs, model_name="Densenet_1")
 	model = move_to_device(model, get_torch_device())
-	epochs=360
+	epochs=200
 
 	mode = 'all'
 	data_dir = "G:\Tamu\Semester 1\Deep Learning\Project\CSCE636-project-2021Fall\starter_code\data\\"
