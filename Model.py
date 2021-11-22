@@ -7,7 +7,7 @@ import torch
 from Network import MyNetwork
 from torch import nn
 from tqdm import tqdm
-from Utils import get_most_recent_ckpt_path
+from Utils import get_most_recent_ckpt_path, plot_results
 
 """This script defines the training, validation and testing process.
 """
@@ -55,7 +55,7 @@ class MyModel(nn.Module):
 
         self.network.save(self.dir_path, self.load_checkpoint_num+epochs)
         np.save(self.dir_path+"training_results", np.array(results), allow_pickle=True)
-
+        plot_results(results, self.dir_path)
         return results
 
     

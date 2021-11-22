@@ -80,3 +80,15 @@ def get_most_recent_ckpt_path(dir_name):
             )
         )[0]
     return dir_name+name
+
+def plot_results(results, path):
+    plots=[{"accuracy vs epochs": ["avg_valid_acc"]}, {"Losses vs epochs" : ["avg_valid_loss", "avg_train_loss"]}, {"learning rates vs batches": ["lrs"]}]
+    fig, axes = plt.subplots(len(plots), figsize = (10,10))
+    for i, pair in enumerate(plots):
+        for title, graphs in pair.items():
+            axes[i].se_title = title
+            axes[i].legend = graphs
+            axes[i]
+            for graph in graphs:
+                axes[i].plot([result[graph] for result in results], '-x')
+    plt.savefig(path+'results_plot.png')
