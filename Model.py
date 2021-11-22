@@ -17,7 +17,7 @@ class MyModel(nn.Module):
     def __init__(self, configs, max_lr=1e-2, loss_func=nn.functional.cross_entropy,load_checkpoint_num=0, model_name="model"):
         super(MyModel, self).__init__()
         # self.configs = configs
-        self.network = DenseNet(growthrate=2, depth=6, in_channels= 3, num_classes= 10)
+        self.network = MyNetwork(growthrate=2, depth=6, in_channels= 3, num_classes= 10)
         if(load_checkpoint_num!=0): self.network=self.network.load(load_checkpoint_num)
         self.load_checkpoint_num=load_checkpoint_num
         self.max_lr=max_lr
