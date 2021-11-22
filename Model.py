@@ -37,7 +37,7 @@ class MyModel(nn.Module):
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[math.floor(epochs/2), math.floor(3*epochs/4)], gamma=0.1)
         
         results = []
-        ckpt_path=get_most_recent_ckpt_path(self.dir_path_fin)
+        ckpt_path=get_most_recent_ckpt_path(self.dir_path)
         if ckpt_path is not None:
             self.network.load_ckpt(ckpt_path)
             self.load_checkpoint_num=get_ckpt_number(ckpt_path)
