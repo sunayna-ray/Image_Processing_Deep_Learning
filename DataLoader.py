@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 """
 batch_size=64
 
-def load_data(data_dir=''):
+def load_data(data_dir='.'):
     """Load the CIFAR-10 dataset.
 
     Args:
