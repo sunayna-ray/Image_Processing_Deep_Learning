@@ -17,6 +17,7 @@ dt=datetime.now().strftime('%m_%d_%Hh_%Mm')
 # parser.add_argument("--save_dir", help="path to save the results")
 # args = parser.parse_args()
 
+#Tutorial Refernce: https://github.com/pytorch/tutorials/blob/master/beginner_source/blitz/cifar10_tutorial.py
 if __name__ == '__main__':
 	model = MyModel(model_configs)
 	model = move_to_device(model, get_torch_device())

@@ -87,8 +87,8 @@ class MyModel(nn.Module):
             for images in test_dataset_loaded:
                 with torch.no_grad():
                     if logits is None:
-                        logits = self.network(images).numpy()
-                    else: logits=np.vstack((logits, self.network(images).numpy()))
+                        logits = self.network(images).cpu().numpy()
+                    else: logits=np.vstack((logits, self.network(images).cpu().numpy()))
         else:
             for images,_ in test_dataset_loaded:
                 if logits is None:
@@ -97,12 +97,11 @@ class MyModel(nn.Module):
 
         probab_logits=nn.functional.softmax(torch.FloatTensor(logits), dim=1)
         probabilities, predicted_class = torch.max(probab_logits, dim = 1)
-        return_probab=probabilities.cpu().numpy()
+        return_probab=probabilities.numpy()
         np.save(self.dir_path+"private_probabilities",  return_probab)
-        np.save(self.dir_path+"private_predicted_class",  predicted_class.cpu().numpy())
+        np.save(self.dir_path+"private_predicted_class",  predicted_class.numpy())
 
         return return_probab
-        
 
 
 ### END CODE HERE

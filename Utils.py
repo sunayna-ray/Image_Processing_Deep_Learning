@@ -22,6 +22,7 @@ class Private_Image_Dataset(torch.utils.data.Dataset):
         return len(self.data)
 
 cifar_mean_stddev = ((0.49139968,  0.48215841,  0.44653091), (0.24703223,  0.24348513,  0.26158784))
+classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 def display_batch(dataset_loaded, test=False, private=True):
     (mean, stddev)=cifar_mean_stddev
@@ -40,14 +41,15 @@ def display_batch(dataset_loaded, test=False, private=True):
             images = images * stddev + mean
             ax.imshow(make_grid(images.cpu(),10).permute(1,2,0))
             fig.savefig('test_batch.png', dpi=200) 
+            print(' '.join('%5s' % classes[labels[j]] for j in range(64)))
             break
     else: 
         for images, labels in dataset_loaded:
             fig, ax = plt.subplots(figsize = (10,10))
             images = images * stddev + mean
             ax.imshow(make_grid(images.cpu(),10).permute(1,2,0))
-            fig.savefig('batch.png', dpi=200) 
-            print(labels)
+            fig.savefig('batch.png', dpi=200)
+            print(' '.join('%5s' % classes[labels[j]] for j in range(64)))
             break
 
 #Reference: https://pytorch.org/tutorials/beginner/nn_tutorial.html#wrapping-dataloader
