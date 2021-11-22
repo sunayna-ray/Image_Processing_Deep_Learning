@@ -79,22 +79,15 @@ class WrappedDataLoader:
         for b in batches:
             yield (move_to_device(b, device=get_torch_device()))
 
+def get_ckpt_number(ckpt_path):
+    return int(ckpt_path[ckpt_path.index('-')+1:ckpt_path.index('.')])
 
 def get_most_recent_ckpt_path(dir_name):
-    names= list(
-        reversed(
-            sorted(
-                filter(lambda dir: dir.endswith("ckpt") , os.listdir(dir_name))
-                )
-            )
-        )
+    names= list(filter(lambda dir: dir.endswith("ckpt") , os.listdir(dir_name)))
+    names.sort(key = lambda f: int(get_ckpt_number(f)), reverse=True)
     if(len(names)!=0):
-        name = names[0]
-        return dir_name+name
+        return dir_name+names[0]
     else: return None
-
-def get_ckpt_number(ckpt_path):
-    return int(list(reversed(ckpt_path))[5])
 
 def plot_results(results, path):
     plots=[{"accuracy vs epochs": ["avg_valid_acc"]}, {"Losses vs epochs" : ["avg_valid_loss", "avg_train_loss"]}, {"learning rates vs batches": ["lrs"]}]

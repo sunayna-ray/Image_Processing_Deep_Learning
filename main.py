@@ -21,6 +21,7 @@ dt=datetime.now().strftime('%m_%d_%Hh_%Mm')
 if __name__ == '__main__':
 	model = MyModel(model_configs, model_name="Densenet_1")
 	model = move_to_device(model, get_torch_device())
+	epochs=360
 
 	mode = 'all'
 	data_dir = "G:\Tamu\Semester 1\Deep Learning\Project\CSCE636-project-2021Fall\starter_code\data\\"
@@ -31,7 +32,7 @@ if __name__ == '__main__':
 
 	if mode == 'train':
 		train_dataset_loaded, valid_dataset_loaded, cifar_test_dataset_loaded = load_data(data_dir)
-		model.train_validate(epochs=1, train_dataset_loaded=train_dataset_loaded, valid_dataset_loaded=valid_dataset_loaded)
+		model.train_validate(epochs, train_dataset_loaded=train_dataset_loaded, valid_dataset_loaded=valid_dataset_loaded)
 		model.evaluate(cifar_test_dataset_loaded)
 
 	elif mode == 'test':
@@ -47,7 +48,7 @@ if __name__ == '__main__':
 	
 	elif mode == 'all':
 		train_dataset_loaded, valid_dataset_loaded, cifar_test_dataset_loaded = load_data(data_dir)
-		model.train_validate(epochs=1, train_dataset_loaded=train_dataset_loaded, valid_dataset_loaded=valid_dataset_loaded)
+		model.train_validate(epochs, train_dataset_loaded=train_dataset_loaded, valid_dataset_loaded=valid_dataset_loaded)
 		model.evaluate(cifar_test_dataset_loaded)
 		x_test = load_private_testing_images(data_dir)
 		predictions = model.predict_prob(x_test, private=True)

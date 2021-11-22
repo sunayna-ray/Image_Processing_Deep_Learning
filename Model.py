@@ -10,29 +10,30 @@ from tqdm import tqdm
 from Utils import get_most_recent_ckpt_path, get_ckpt_number, plot_results
 from SummaryUtils import summary_string  #use torchsummary package from https://github.com/sksq96/pytorch-summary
 from Utils import get_torch_device
+import math
 
 """This script defines the training, validation and testing process.
 """
 
 class MyModel(nn.Module):
 
-    def __init__(self, configs, max_lr=1e-2, loss_func=nn.functional.cross_entropy,load_checkpoint_num=0, model_name="model"):
+    def __init__(self, configs, max_lr=1e-1, loss_func=nn.functional.cross_entropy,load_checkpoint_num=0, model_name="model"):
         super(MyModel, self).__init__()
         # self.configs = configs
-        self.network = MyNetwork(growthrate=2, depth=6, in_channels= 3, num_classes= 10)
+        self.network = MyNetwork(depth=40, growthrate=48, in_channels= 3, num_classes= 10)
         if(load_checkpoint_num!=0): self.network=self.network.load(load_checkpoint_num)
         self.load_checkpoint_num=load_checkpoint_num
         self.max_lr=max_lr
         self.loss_func=loss_func
-        self.optim=torch.optim.Adam
+        self.optim=torch.optim.SGD
         self.dir_path="outputs_"+model_name+"/"
         self.dir_path_fin="outputs_"+model_name+"_fin/"
         if not os.path.exists(self.dir_path): os.makedirs(self.dir_path)
         if not os.path.exists(self.dir_path_fin): os.makedirs(self.dir_path_fin)
 
     def train_validate(self, epochs, train_dataset_loaded, valid_dataset_loaded):
-        optimizer = self.optim(self.network.parameters(), self.max_lr)
-        scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, self.max_lr, epochs * len(train_dataset_loaded))
+        optimizer = self.optim(params=self.network.parameters(), lr=self.max_lr, momentum=0.9, weight_decay=1e-4, nesterov=True)
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[math.floor(epochs/2), math.floor(3*epochs/4)], gamma=0.1)
         
         results = []
         ckpt_path=get_most_recent_ckpt_path(self.dir_path_fin)
@@ -40,7 +41,10 @@ class MyModel(nn.Module):
             self.network.load_ckpt(ckpt_path)
             self.load_checkpoint_num=get_ckpt_number(ckpt_path)
 
-        for epoch in range(epochs):
+        for epoch in range(self.load_checkpoint_num+1):
+            scheduler.step()
+
+        for epoch in range(self.load_checkpoint_num+1, epochs):
             self.network.train()
             train_losses = []
             lrs = []
@@ -52,19 +56,19 @@ class MyModel(nn.Module):
                 optimizer.step()
                 optimizer.zero_grad()
                 lrs.append(optimizer.param_groups[0]['lr'])
-                scheduler.step()
+            scheduler.step()
             epoch_train_loss = torch.stack(train_losses).mean().item()
                         
             epoch_avg_loss, epoch_avg_acc = self.evaluate(valid_dataset_loaded, test=False)
 
             results.append({'avg_valid_loss': epoch_avg_loss, "avg_valid_acc": epoch_avg_acc, "avg_train_loss" : epoch_train_loss, "lrs" : lrs})
 
-            if ((epoch+1)%20==0):
+            if ((epoch)%20==0):
                 checkpoint_num=self.load_checkpoint_num+epoch+1
                 self.network.save(self.dir_path, checkpoint_num)
                 np.save(self.dir_path+"training_results_"+str(checkpoint_num), np.array(results), allow_pickle=True)
 
-        self.network.save(self.dir_path_fin, self.load_checkpoint_num+epochs)
+        self.network.save(self.dir_path_fin, epochs)
         np.save(self.dir_path_fin+"training_results_fin", np.array(results), allow_pickle=True)
         plot_results(results, self.dir_path)
 
