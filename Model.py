@@ -34,7 +34,7 @@ class MyModel(nn.Module):
 
     def train_validate(self, epochs, train_dataset_loaded, valid_dataset_loaded):
         optimizer = self.optim(params=self.network.parameters(), lr=self.max_lr, momentum=0.9, weight_decay=1e-4, nesterov=True)
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[math.floor(3*epochs/10), math.floor(3*epochs/5)], gamma=0.1)
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[math.floor(3*epochs/10), math.floor(3*epochs/5)], gamma=0.1414)
         
         results = []
         ckpt_path=get_most_recent_ckpt_path(self.dir_path)
