@@ -104,7 +104,7 @@ class MyModel(nn.Module):
 
         if (test):
             print("avg_loss, ", avg_loss)
-            print("avg_acc, ", avg_acc)
+        print("avg_acc, ", avg_acc)
         return avg_loss, avg_acc
 
     def predict_prob(self, test_dataset_loaded, private=False):
