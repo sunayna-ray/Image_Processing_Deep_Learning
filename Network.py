@@ -89,12 +89,21 @@ class Dense_Block(nn.Module):
         self.nchannels=nchannels
         self.growthrate=growthrate
         self.nDenseBlocks=nDenseBlocks
+        layers=[]
+        for i in range(int(self.nDenseBlocks)):
+            layers.append(bottleneck_block(self.nchannels,self.growthrate))
+            self.nchannels += self.growthrate
+        self.dense=nn.Sequential(*layers)
+
 
     def forward(self, x):
-        for i in range(int(self.nDenseBlocks)):
-            x = torch.cat((x,bottleneck_block(x,self.nchannels,self.growthrate) ),1)
+        for layer in self.dense:
+            out=layer(x)
+            x = torch.cat((x,out),1)
             self.nchannels += self.growthrate
         return x
+
+
 
 
 ### END CODE HERE

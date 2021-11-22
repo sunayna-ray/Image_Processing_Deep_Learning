@@ -21,6 +21,7 @@ class MyModel(nn.Module):
         super(MyModel, self).__init__()
         # self.configs = configs
         self.network = MyNetwork(depth=40, growthrate=48, in_channels= 3, num_classes= 10)
+        
         if(load_checkpoint_num!=0): self.network=self.network.load(load_checkpoint_num)
         self.load_checkpoint_num=load_checkpoint_num
         self.max_lr=max_lr
@@ -48,6 +49,7 @@ class MyModel(nn.Module):
             self.network.train()
             train_losses = []
             lrs = []
+            print("epoch: ", epoch)
             for images, labels in tqdm(train_dataset_loaded):
                 logits = self.network(images)
                 loss = self.loss_func(logits, labels)
@@ -64,7 +66,7 @@ class MyModel(nn.Module):
             results.append({'avg_valid_loss': epoch_avg_loss, "avg_valid_acc": epoch_avg_acc, "avg_train_loss" : epoch_train_loss, "lrs" : lrs})
 
             if ((epoch)%20==0):
-                checkpoint_num=self.load_checkpoint_num+epoch+1
+                checkpoint_num=epoch
                 self.network.save(self.dir_path, checkpoint_num)
                 np.save(self.dir_path+"training_results_"+str(checkpoint_num), np.array(results), allow_pickle=True)
 
