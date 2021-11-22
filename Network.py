@@ -1,36 +1,58 @@
 ### YOUR CODE HERE
 import torch
-from torch import version
-from torch.functional import Tensor
+import math
 import torch.nn as nn
-from Network_block_utils import conv2_BNRL
+import torch.nn.functional as F
+from Network_block_utils import bottleneck_block, initialize_params,bn_rl_conv2d_block
 from collections import OrderedDict
 
 """This script defines the network.
 """
-
+# Reference: https://openaccess.thecvf.com/content_cvpr_2017/papers/Huang_Densely_Connected_Convolutional_CVPR_2017_paper.pdf
+# Reference: https://github.com/bamos/densenet.pytorch/
 class MyNetwork(nn.Module):
 
     # def __init__(self, configs):
-    def __init__(self, in_channels, num_classes=10):
+    def __init__(self, growthrate, depth, reduction=0.5, in_channels=3, num_classes=10):
         # self.configs = configs
-        super().__init__()
-        self.conv1 = conv2_BNRL(in_channels, 64)
-        self.conv2 = conv2_BNRL(64, 128, pool = True)
-        self.res1 = nn.Sequential(OrderedDict([
-                ("conv1res1", conv2_BNRL(128,128)), 
-                ("conv2res1", conv2_BNRL(128,128))
-            ]))
+        super(MyNetwork, self).__init__()
+        self.growthrate=growthrate
+        self.reduction=reduction
 
-        self.conv3 = conv2_BNRL(128, 256, pool = True)
-        self.conv4 = conv2_BNRL(256, 512, pool = True)
-        self.res2 = nn.Sequential(conv2_BNRL(512,512), conv2_BNRL(512,512))
+        nDenseBlocks = (depth-4) // 6
+        nchannels = 2*self.growthrate
+        self.conv1 = initialize_params(
+            nn.Conv2d(in_channels, nchannels, kernel_size=3, padding=1, bias=False))
+        
+        self.dense1 = Dense_Block(nchannels, growthrate, nDenseBlocks)        
+        nchannels += nDenseBlocks*growthrate
+        nOutChannels = int(math.floor(nchannels*reduction))
+        self.trans1 = nn.Sequential(*bn_rl_conv2d_block(in_channels=nchannels,
+                                    out_channels=nOutChannels,
+                                   kernel_size=1,bias=False, pool=True))
+        nchannels = nOutChannels
+        
+        self.dense2 = Dense_Block(nchannels, growthrate, nDenseBlocks)        
+        nchannels += nDenseBlocks*growthrate
+        nOutChannels = int(math.floor(nchannels*reduction))
+        self.trans2 = nn.Sequential(*bn_rl_conv2d_block(in_channels=nchannels,
+                                    out_channels=nOutChannels,
+                                   kernel_size=1,bias=False, pool=True))
+        nchannels = nOutChannels
 
-        self.classifier = nn.Sequential(nn.MaxPool2d(4),
-                                           nn.Flatten(),
-                                           nn.Dropout(0.2),
-                                           nn.Linear(512, num_classes))
-        self.iter=0
+        self.dense3 = Dense_Block(nchannels, growthrate, nDenseBlocks)        
+        nchannels += nDenseBlocks*growthrate
+
+        self.classifier = initialize_params(
+            nn.Sequential(nn.BatchNorm2d(nchannels),
+                        nn.ReLU(),
+                        nn.AvgPool2d(8),
+                        nn.Flatten(),
+                        nn.Linear(nchannels,num_classes),
+                        nn.LogSoftmax()))
+        
+        self.bn1 = nn.BatchNorm2d(nchannels)
+        self.fc = initialize_params(nn.Linear(nchannels,num_classes))
 
 
     '''
@@ -43,14 +65,17 @@ class MyNetwork(nn.Module):
     '''
     def forward(self, x):
         out = self.conv1(x)
-        out = self.conv2(out)
-        out = self.res1(out) + out
-        out = self.conv3(out)
-        out = self.conv4(out)
-        out = self.res2(out) + out
-        # print("Completed Forward Pass, iter: ", self.iter)
-        self.iter=self.iter +1
-        return self.classifier(out)
+        out = self.dense1(out)
+        out = self.trans1(out)
+        out = self.dense2(out)
+        out = self.trans2(out)
+        out = self.dense3(out)
+        out1 = self.classifier(out)
+        out2 = torch.squeeze(F.avg_pool2d(F.relu(self.bn1(out)), 8))
+        # out2 = F.log_softmax(self.fc(out2))
+        print(out2.size())
+        # print(out2)
+        return out1
         
     # def __call__(self, inputs, training):
     #     return self.build_network(inputs, training)
@@ -72,5 +97,20 @@ class MyNetwork(nn.Module):
       ckpt = torch.load( dir_path+checkpoint_name, map_location="cpu")
       self.load_state_dict(ckpt, strict=True)
       print("Restored model parameters from {}".format(checkpoint_name))
+
+class Dense_Block(nn.Module):
+    def __init__(self, nchannels, growthrate, nDenseBlocks):
+        # self.configs = configs
+        super(Dense_Block, self).__init__()
+        self.nchannels=nchannels
+        self.growthrate=growthrate
+        self.nDenseBlocks=nDenseBlocks
+
+    def forward(self, x):
+        for i in range(int(self.nDenseBlocks)):
+            x = torch.cat((x,bottleneck_block(x,self.nchannels,self.growthrate) ),1)
+            self.nchannels += self.growthrate
+        return x
+
 
 ### END CODE HERE
