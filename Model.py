@@ -7,7 +7,7 @@ import torch
 from Network import MyNetwork
 from torch import nn
 from tqdm import tqdm
-from Utils import get_most_recent_ckpt_path, move_to_device, plot_results
+from Utils import get_most_recent_ckpt_path, get_ckpt_number, plot_results
 
 """This script defines the training, validation and testing process.
 """
@@ -24,13 +24,20 @@ class MyModel(nn.Module):
         self.loss_func=loss_func
         self.optim=optim
         self.dir_path="outputs_"+model_name+"/"
+        self.dir_path_fin="outputs_"+model_name+"_fin/"
         if not os.path.exists(self.dir_path): os.makedirs(self.dir_path)
+        if not os.path.exists(self.dir_path_fin): os.makedirs(self.dir_path_fin)
 
     def train_validate(self, epochs, train_dataset_loaded, valid_dataset_loaded):
         optimizer = self.optim(self.network.parameters(), self.max_lr)
         scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, self.max_lr, epochs * len(train_dataset_loaded))
         
         results = []
+        ckpt_path=get_most_recent_ckpt_path(self.dir_path_fin)
+        if ckpt_path is not None:
+            self.network.load_ckpt(ckpt_path)
+            self.load_checkpoint_num=get_ckpt_number(ckpt_path)
+            
         for epoch in range(epochs):
             self.network.train()
             train_losses = []
@@ -53,8 +60,13 @@ class MyModel(nn.Module):
 
             results.append({'avg_valid_loss': epoch_avg_loss, "avg_valid_acc": epoch_avg_acc, "avg_train_loss" : epoch_train_loss, "lrs" : lrs})
 
-        self.network.save(self.dir_path, self.load_checkpoint_num+epochs)
-        np.save(self.dir_path+"training_results", np.array(results), allow_pickle=True)
+            if ((epoch+1)%20==0):
+                checkpoint_num=self.load_checkpoint_num+epoch+1
+                self.network.save(self.dir_path, checkpoint_num)
+                np.save(self.dir_path+"training_results_"+str(checkpoint_num), np.array(results), allow_pickle=True)
+
+        self.network.save(self.dir_path_fin, self.load_checkpoint_num+epochs)
+        np.save(self.dir_path_fin+"training_results_fin", np.array(results), allow_pickle=True)
         plot_results(results, self.dir_path)
         return results
 
@@ -66,7 +78,7 @@ class MyModel(nn.Module):
     def evaluate(self, dataset_loaded, test=True):
 
         if(test):
-            ckpt_path=get_most_recent_ckpt_path(self.dir_path)
+            ckpt_path=get_most_recent_ckpt_path(self.dir_path_fin)
             self.network.load_ckpt(ckpt_path)
 
         self.network.eval()
@@ -81,6 +93,8 @@ class MyModel(nn.Module):
         return avg_loss, avg_acc
 
     def predict_prob(self, test_dataset_loaded, private=False):
+        ckpt_path=get_most_recent_ckpt_path(self.dir_path_fin)
+        self.network.load_ckpt(ckpt_path)
         self.network.eval()
         logits=None
         if private:

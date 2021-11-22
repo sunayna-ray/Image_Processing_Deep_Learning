@@ -81,14 +81,20 @@ class WrappedDataLoader:
 
 
 def get_most_recent_ckpt_path(dir_name):
-    name= list(
+    names= list(
         reversed(
             sorted(
                 filter(lambda dir: dir.endswith("ckpt") , os.listdir(dir_name))
                 )
             )
-        )[0]
-    return dir_name+name
+        )
+    if(len(names)!=0):
+        name = names[0]
+        return dir_name+name
+    else: return None
+
+def get_ckpt_number(ckpt_path):
+    return int(list(reversed(ckpt_path))[5])
 
 def plot_results(results, path):
     plots=[{"accuracy vs epochs": ["avg_valid_acc"]}, {"Losses vs epochs" : ["avg_valid_loss", "avg_train_loss"]}, {"learning rates vs batches": ["lrs"]}]
