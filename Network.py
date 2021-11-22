@@ -48,6 +48,7 @@ class MyNetwork(nn.Module):
                         nn.ReLU(),
                         nn.AvgPool2d(8),
                         nn.Flatten(),
+                        nn.Dropout(0.2),
                         nn.Linear(nchannels,num_classes)))
     '''
     Args:

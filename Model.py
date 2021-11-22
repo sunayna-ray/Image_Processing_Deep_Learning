@@ -17,7 +17,7 @@ import math
 
 class MyModel(nn.Module):
 
-    def __init__(self, configs, max_lr=1e-1, loss_func=nn.functional.cross_entropy,load_checkpoint_num=0, model_name="model"):
+    def __init__(self, configs, max_lr=5e-1, loss_func=nn.functional.cross_entropy,load_checkpoint_num=0, model_name="model"):
         super(MyModel, self).__init__()
         # self.configs = configs
         self.network = MyNetwork(depth=40, growthrate=48, in_channels= 3, num_classes= 10)
@@ -34,7 +34,7 @@ class MyModel(nn.Module):
 
     def train_validate(self, epochs, train_dataset_loaded, valid_dataset_loaded):
         optimizer = self.optim(params=self.network.parameters(), lr=self.max_lr, momentum=0.9, weight_decay=1e-4, nesterov=True)
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[math.floor(epochs/2), math.floor(3*epochs/4)], gamma=0.1)
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[math.floor(3*epochs/10), math.floor(3*epochs/5)], gamma=0.1)
         
         results = []
         ckpt_path=get_most_recent_ckpt_path(self.dir_path)
