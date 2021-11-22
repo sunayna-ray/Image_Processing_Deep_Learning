@@ -5,7 +5,6 @@ import os, time
 import numpy as np
 import torch
 from Network import MyNetwork
-from Network_2 import DenseNet
 from torch import nn
 from tqdm import tqdm
 from Utils import get_most_recent_ckpt_path, get_ckpt_number, plot_results
