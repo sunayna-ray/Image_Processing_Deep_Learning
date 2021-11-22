@@ -1,4 +1,4 @@
-from Utils import Private_Image_Dataset, WrappedDataLoader, display_batch
+from Utils import Private_Image_Dataset, WrappedDataLoader, display_batch, get_torch_device, move_to_device
 from ImageUtils import preprocess_image
 import torchvision
 import torch
@@ -32,7 +32,8 @@ def load_data(data_dir=''):
     train_dataset_loaded = WrappedDataLoader(train_dataset_loaded)
     valid_dataset_loaded = WrappedDataLoader(valid_dataset_loaded)
     cifar_test_dataset_loaded = WrappedDataLoader(cifar_test_dataset_loaded)
-    display_batch(cifar_test_dataset_loaded)
+    display_batch(valid_dataset_loaded, test=False, private=False)
+    display_batch(cifar_test_dataset_loaded, test=True, private=False)
     ### END CODE HERE
 
     return train_dataset_loaded, valid_dataset_loaded, cifar_test_dataset_loaded
@@ -50,9 +51,13 @@ def load_private_testing_images(data_dir):
 
     ### YOUR CODE HERE
     private_test_dataset=Private_Image_Dataset(data_dir, transform=preprocess_image()[1])
-    private_test_dataset_loaded = DataLoader(private_test_dataset, batch_size, shuffle = False, pin_memory = True, num_workers=2)
+    private_test_dataset_loaded = DataLoader(private_test_dataset, batch_size=2000, shuffle = False, pin_memory = True, num_workers=2)
     private_test_dataset_loaded = WrappedDataLoader(private_test_dataset_loaded)
     display_batch(private_test_dataset_loaded, test=True)
+    for images in private_test_dataset_loaded:
+        test_batch = move_to_device(images, get_torch_device())
+    private_test_dataset_loaded = move_to_device(test_batch, get_torch_device())
+    display_batch(private_test_dataset_loaded, test=True, private=True)
     ### END CODE HERE
 
     return private_test_dataset_loaded

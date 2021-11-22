@@ -7,6 +7,7 @@ from Model import MyModel
 from DataLoader import load_data, load_private_testing_images
 from Configure import model_configs, training_configs
 from Utils import move_to_device, get_torch_device
+import numpy as np
 
 from datetime import datetime
 dt=datetime.now().strftime('%m_%d_%Hh_%Mm')
@@ -20,8 +21,8 @@ if __name__ == '__main__':
 	model = MyModel(model_configs)
 	model = move_to_device(model, get_torch_device())
 
-	mode = 'test'
-	data_dir = "G:\Tamu\Semester 1\Deep Learning\Project\CSCE636-project-2021Fall\starter_code\data"
+	mode = 'train'
+	data_dir = "G:\Tamu\Semester 1\Deep Learning\Project\CSCE636-project-2021Fall\starter_code\data\\"
 	result_dir = "G:\Tamu\Semester 1\Deep Learning\Project\CSCE636-project-2021Fall\output\result_dt"
 	# if (args.mode!=''): mode= args.mode
 	# if (args.data_dir!=''): data_dir= args.data_dir
@@ -35,7 +36,7 @@ if __name__ == '__main__':
 	elif mode == 'test':
 		# Testing on public testing dataset
 		_, _, cifar_test_dataset_loaded = load_data(data_dir)
-		model.evaluate(cifar_test_dataset_loaded)
+		results=model.evaluate(cifar_test_dataset_loaded)
 
 	elif mode == 'predict':
 		# Predicting and storing results on private testing dataset 
