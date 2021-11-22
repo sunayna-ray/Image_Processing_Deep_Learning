@@ -58,5 +58,14 @@ class MyNetwork(nn.Module):
     # def build_network(self, inputs, training):
     #     return inputs
 
+    def save(self, epochs):
+        torch.save(self.state_dict(), 'model-%d.ckpt'%(epochs))
+        print("Checkpoint has been created.")
+
+    def load(self, checkpoint_number):
+      checkpoint_name='model-%d.ckpt'%(checkpoint_number)
+      ckpt = torch.load(checkpoint_name, map_location="cpu")
+      self.load_state_dict(ckpt, strict=True)
+      print("Restored model parameters from {}".format(checkpoint_name))
 
 ### END CODE HERE
