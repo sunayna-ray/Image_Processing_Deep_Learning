@@ -7,7 +7,7 @@ import torch
 from Network import MyNetwork
 from torch import nn
 from tqdm import tqdm
-import os
+from Utils import get_most_recent_ckpt_path
 
 """This script defines the training, validation and testing process.
 """
@@ -23,9 +23,8 @@ class MyModel(nn.Module):
         self.max_lr=max_lr
         self.loss_func=loss_func
         self.optim=optim
-        self.model_name=model_name
-        if not os.path.exists("outputs_"+self.model_name+"/"):
-            os.makedirs("outputs_"+self.model_name+"/")
+        self.dir_path="outputs_"+model_name+"/"
+        if not os.path.exists(self.dir_path): os.makedirs(self.dir_path)
 
     def train_validate(self, epochs, train_dataset_loaded, valid_dataset_loaded):
         optimizer = self.optim(self.network.parameters(), self.max_lr)
@@ -50,12 +49,12 @@ class MyModel(nn.Module):
                 break
             epoch_train_loss = torch.stack(train_losses).mean().item()
                         
-            epoch_avg_loss, epoch_avg_acc = self.evaluate(valid_dataset_loaded)
+            epoch_avg_loss, epoch_avg_acc = self.evaluate(valid_dataset_loaded, test=False)
 
             results.append({'avg_valid_loss': epoch_avg_loss, "avg_valid_acc": epoch_avg_acc, "avg_train_loss" : epoch_train_loss, "lrs" : lrs})
 
-        self.network.save("outputs_"+self.model_name+"/", self.load_checkpoint_num+epochs)
-        np.save("outputs_"+self.model_name+"/training_results", np.array(results), allow_pickle=True)
+        self.network.save(self.dir_path, self.load_checkpoint_num+epochs)
+        np.save(self.dir_path+"training_results", np.array(results), allow_pickle=True)
 
         return results
 
@@ -64,7 +63,12 @@ class MyModel(nn.Module):
         pred, predClassId = torch.max(logits, dim = 1) 
         return torch.tensor(torch.sum(predClassId == labels).item()/ len(logits)*100)
     
-    def evaluate(self, dataset_loaded):
+    def evaluate(self, dataset_loaded, test=True):
+
+        if(test):
+            ckpt_path=get_most_recent_ckpt_path(self.dir_path)
+            self.network.load_ckpt(ckpt_path)
+
         self.network.eval()
         batch_losses, batch_accs = [], []                   
         for images, labels in dataset_loaded:
@@ -78,5 +82,6 @@ class MyModel(nn.Module):
 
     def predict_prob(self, test_dataset_loaded):
         results = self.evaluate(test_dataset_loaded)
+
 
 ### END CODE HERE

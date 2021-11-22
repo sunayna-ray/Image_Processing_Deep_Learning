@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
+import os
 
 class Private_Image_Dataset(torch.utils.data.Dataset):
     def __init__(self, data_dir, transform=None):
@@ -68,3 +69,14 @@ class WrappedDataLoader:
         batches = iter(self.dataset_loaded)
         for b in batches:
             yield (move_to_device(b, device=get_torch_device()))
+
+
+def get_most_recent_ckpt_path(dir_name):
+    name= list(
+        reversed(
+            sorted(
+                filter(lambda dir: dir.endswith("ckpt") , os.listdir(dir_name))
+                )
+            )
+        )[0]
+    return dir_name+name
